@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+
+    <item android:id="@+id/action_upload"
+        android:title="@string/action_upload"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/menu_overflow"
+        android:icon="@drawable/abc_ic_menu_moreoverflow_mtrl_alpha"
+        android:title="@string/action_upload"
+        app:showAsAction="always">
+    <menu>
+    <item android:id="@+id/action_sync"
+        android:title="@string/action_sync"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_unlink"
+
+        android:title="@string/action_unlink"
+        app:showAsAction="never" />
+    </menu>
+    </item>
+</menu>
