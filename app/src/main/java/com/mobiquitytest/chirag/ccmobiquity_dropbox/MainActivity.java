@@ -19,7 +19,7 @@ import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends MasterActivity {
 
     private static final String APP_KEY = "lvr4cevw3v8cy7f";
     private static final String APP_SECRET = "h1zk7uvb02w5fe8";
@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 
     private static final boolean USE_OAUTH1 = false;
 
-    DropboxAPI<AndroidAuthSession> mApi;
+
     private String TAG = "MainActivity";
     private boolean mLoggedIn;
     @Override
@@ -203,10 +203,7 @@ public class MainActivity extends Activity {
         setLoggedIn(false);
     }
 
-    private void showToast(String msg) {
-        Toast error = Toast.makeText(this, msg, Toast.LENGTH_LONG);
-        error.show();
-    }
+
 
 
 }
