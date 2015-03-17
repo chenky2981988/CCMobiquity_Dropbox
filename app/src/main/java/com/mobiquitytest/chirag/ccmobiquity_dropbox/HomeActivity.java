@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,14 +26,14 @@ import java.util.Date;
 import java.util.Locale;
 
 
-public class HomeActivity extends MasterActivity implements PhotoListListener{
+public class HomeActivity extends MasterActivity implements PhotoListListener,DownloadPhotoListener{
 
     private String mCameraFileName;
     private static final String TAG = "HomeActivity";
     private final String PHOTO_DIR = "/Photos/";
     private static final int NEW_PICTURE = 1;
     private ListView photoListView;
-
+    public ArrayList<DropboxAPI.Entry> photoList = new ArrayList<DropboxAPI.Entry>();
     private PhotoListAdapter photoListAdapter;
 
 
@@ -57,17 +58,15 @@ public class HomeActivity extends MasterActivity implements PhotoListListener{
     private void initUI() {
 
         photoListView = (ListView) findViewById(R.id.photo_listview);
-        photoListAdapter = new PhotoListAdapter(HomeActivity.this, this.photoList);
+        photoListAdapter = new PhotoListAdapter(HomeActivity.this, this.photoList,PHOTO_DIR);
         photoListView.setAdapter(photoListAdapter);
 
         photoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Intent PhotoViewIntent = new Intent(HomeActivity.this,PhotoViewActivity.class);
-                PhotoViewIntent.putExtra("index", position);
-                PhotoViewIntent.putExtra("dropbox_path", PHOTO_DIR);
-                startActivity(PhotoViewIntent);
+                DownloadPicture downloadPicture = new DownloadPicture(HomeActivity.this,mApi,PHOTO_DIR,photoList.get(position),DropboxAPI.ThumbSize.BESTFIT_1024x768,null);
+                downloadPicture.execute();
 
             }
         });
@@ -183,5 +182,15 @@ public class HomeActivity extends MasterActivity implements PhotoListListener{
     {
         DownloadPhotosList  downloadPhotosList  = new DownloadPhotosList(this, mApi, PHOTO_DIR);
         downloadPhotosList.execute();
+    }
+
+    @Override
+    public void setPhoto(String photoPath)
+    {
+        if(!TextUtils.isEmpty(photoPath)) {
+            Intent PhotoViewIntent = new Intent(HomeActivity.this, PhotoViewActivity.class);
+            PhotoViewIntent.putExtra("photo_path", photoPath);
+            startActivity(PhotoViewIntent);
+        }
     }
 }

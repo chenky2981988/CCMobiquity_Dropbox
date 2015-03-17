@@ -7,5 +7,5 @@ import android.graphics.drawable.Drawable;
  */
 public interface DownloadPhotoListener  {
 
-    public void setPhoto(Drawable photoDrawable);
+    public void setPhoto(String photoPath);
 }

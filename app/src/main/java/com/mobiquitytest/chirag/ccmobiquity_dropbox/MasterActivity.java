@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public abstract class MasterActivity extends ActionBarActivity {
 
     public static DropboxAPI<AndroidAuthSession> mApi;
-    public static ArrayList<DropboxAPI.Entry> photoList = new ArrayList<DropboxAPI.Entry>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

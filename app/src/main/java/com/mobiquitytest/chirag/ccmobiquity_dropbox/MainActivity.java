@@ -21,8 +21,8 @@ import com.dropbox.client2.session.AppKeyPair;
 
 public class MainActivity extends MasterActivity {
 
-    private static final String APP_KEY = "lvr4cevw3v8cy7f";
-    private static final String APP_SECRET = "h1zk7uvb02w5fe8";
+    private static final String APP_KEY = "55fdqp32bdt5hvl";
+    private static final String APP_SECRET = "2kfi0fd4w66asll";
 
     // You don't need to change these, leave them alone.
     private static final String ACCOUNT_PREFS_NAME = "prefs";

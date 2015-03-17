@@ -4,6 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.ImageView;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.exception.DropboxException;
@@ -20,7 +22,7 @@ import java.io.FileOutputStream;
  * Created by Chirag on 3/16/2015.
  */
 
-public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
+ public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
 
     private DropboxAPI<?> mApi;
     private Context mContext;
@@ -28,15 +30,15 @@ public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
     private String mPath;
     private String mErrorMsg;
     private String TAG = "DownloadPicture";
-
     private DropboxAPI.Entry photoData;
     private Long mFileLen;
-    private Drawable mDrawable;
+    private String cachePath;
     private FileOutputStream mFos;
     private DropboxAPI.ThumbSize thumbSize;
     DownloadPhotoListener listener;
+    private ImageView mImageView;
 
-    public DownloadPicture(Context context, DropboxAPI<?> api,String dropboxPath,DropboxAPI.Entry photoData,DropboxAPI.ThumbSize thumbSize)
+    public DownloadPicture(Context context, DropboxAPI<?> api,String dropboxPath,DropboxAPI.Entry photoData,DropboxAPI.ThumbSize thumbSize,ImageView imageView)
     {
         this.mApi = api;
         this.mContext = context;
@@ -44,13 +46,17 @@ public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
         this.photoData = photoData;
         this.thumbSize = thumbSize;
         listener = (DownloadPhotoListener) mContext;
+        this.mImageView = imageView;
 
     }
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        if(progressDialog == null)
-            progressDialog = ProgressDialog.show(mContext,"",mContext.getResources().getString(R.string.downloading));
+        if(mImageView == null) {
+            if (progressDialog == null)
+                progressDialog = ProgressDialog.show(mContext, "", mContext.getResources().getString(R.string.downloading));
+        }
+
     }
 
     @Override
@@ -59,19 +65,19 @@ public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
 
         String path = this.photoData.path;
         mFileLen = this.photoData.bytes;
-        String cachePath = mContext.getCacheDir().getAbsolutePath() + "/" + this.photoData.fileName();
+        cachePath = mContext.getCacheDir().getAbsolutePath() + "/" + this.photoData.fileName();
 
-            mFos = new FileOutputStream(cachePath);
+        mFos = new FileOutputStream(cachePath);
 
 
         // This downloads a smaller, thumbnail version of the file.  The
         // API to download the actual file is roughly the same.
 
-            mApi.getThumbnail(path, mFos, this.thumbSize,
+         mApi.getThumbnail(path, mFos, this.thumbSize,
                     DropboxAPI.ThumbFormat.JPEG, null);
 
-            mDrawable = Drawable.createFromPath(cachePath);
-            return true;
+       //  mDrawable = Drawable.createFromPath(cachePath);
+         return true;
         } catch (FileNotFoundException e) {
             mErrorMsg = "Couldn't create a local file to store the image";
 
@@ -125,13 +131,19 @@ public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
 
+        if(mImageView != null && result)
+        {
+            mImageView.setImageDrawable(Drawable.createFromPath(cachePath));
+            return;
+        }
         if(result)
         {
-            listener.setPhoto(mDrawable);
+            listener.setPhoto(cachePath);
+            if(progressDialog != null && progressDialog.isShowing())
+            {
+                progressDialog.dismiss();
+            }
         }
-        if(progressDialog != null && progressDialog.isShowing())
-        {
-            progressDialog.dismiss();
-        }
+
     }
 }

@@ -20,11 +20,13 @@ public class PhotoListAdapter extends BaseAdapter{
     private Context mContext;
     private ArrayList<DropboxAPI.Entry> photoList;
     private LayoutInflater inflater;
-    public PhotoListAdapter(Context mContext, ArrayList<DropboxAPI.Entry> photoList)
+    private String PHOTO_DIR;
+    public PhotoListAdapter(Context mContext, ArrayList<DropboxAPI.Entry> photoList,String photoPath)
     {
         this.mContext = mContext;
         this.photoList = photoList;
         inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.PHOTO_DIR = photoPath;
     }
 
     @Override
@@ -62,6 +64,9 @@ public class PhotoListAdapter extends BaseAdapter{
         }
 
         holder.photoTextView.setText(photoList.get(position).fileName());
+
+        DownloadPicture downloadPicture = new DownloadPicture(mContext,((HomeActivity)mContext).mApi,this.PHOTO_DIR,photoList.get(position),DropboxAPI.ThumbSize.ICON_64x64,holder.photoImageView);
+        downloadPicture.execute();
 
         return convertView;
     }
