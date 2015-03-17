@@ -12,7 +12,9 @@
     <string name="title_activity_master">MasterActivity</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="loading">Loading...</string>
-    <string name="downloading">Downloading...</string>
+    <string name="loading">Downloading Image List...</string>
+    <string name="downloading">Downloading Image...</string>
     <string name="title_activity_photo_view">PhotoViewActivity</string>
+    <string name="link">Link Dropbox</string>
+
 </resources>

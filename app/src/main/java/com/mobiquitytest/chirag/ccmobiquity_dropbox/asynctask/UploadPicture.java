@@ -24,18 +24,11 @@
  */
 
 
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.asynctask;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.DropboxAPI.UploadRequest;
@@ -47,6 +40,12 @@ import com.dropbox.client2.exception.DropboxParseException;
 import com.dropbox.client2.exception.DropboxPartialFileException;
 import com.dropbox.client2.exception.DropboxServerException;
 import com.dropbox.client2.exception.DropboxUnlinkedException;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.listeners.PhotoListListener;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.util.Utils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 /**
  * Here we show uploading a file in a background thread, trying to show
@@ -62,10 +61,10 @@ public class UploadPicture extends AsyncTask<Void, Long, Boolean> {
     private long mFileLen;
     private UploadRequest mRequest;
     private Context mContext;
-    private final ProgressDialog mDialog;
+    private ProgressDialog mDialog;
     private PhotoListListener listener;
     private String mErrorMsg;
-
+    private Utils mUtils;
 
     public UploadPicture(Context context, DropboxAPI<?> api, String dropboxPath,
             File file) {
@@ -76,21 +75,12 @@ public class UploadPicture extends AsyncTask<Void, Long, Boolean> {
         mApi = api;
         mPath = dropboxPath;
         mFile = file;
+        mUtils = new Utils(mContext);
 
-        mDialog = new ProgressDialog(context);
-        mDialog.setMax(100);
-        mDialog.setMessage("Uploading " + file.getName());
-        mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mDialog.setProgress(0);
-        mDialog.setButton(ProgressDialog.BUTTON_POSITIVE, "Cancel", new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // This will cancel the putFile operation
-                mRequest.abort();
-            }
-        });
-        mDialog.show();
+        // Create and initialize progress dialog
+        createProgressDialog();
     }
+
 
     @Override
     protected Boolean doInBackground(Void... params) {
@@ -170,19 +160,32 @@ public class UploadPicture extends AsyncTask<Void, Long, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean result) {
-        mDialog.dismiss();
-        if (result) {
 
+        if (result) {
+        // Call interface method with uploaded image result
             listener.updatePhotoList(result);
-            showToast("Image successfully uploaded");
+            mUtils.showToast("Image successfully uploaded");
 
         } else {
-            showToast(mErrorMsg);
+            mUtils.showToast(mErrorMsg);
+        }
+
+        if(mDialog != null && mDialog.isShowing())
+        {
+            mDialog.dismiss();
         }
     }
 
-    private void showToast(String msg) {
-        Toast error = Toast.makeText(mContext, msg, Toast.LENGTH_LONG);
-        error.show();
+    // Create and display progress dialog
+    private void createProgressDialog() {
+        mDialog = new ProgressDialog(mContext);
+        mDialog.setMax(100);
+        mDialog.setCancelable(false);
+        mDialog.setMessage("Uploading " + mFile.getName());
+        mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mDialog.setProgress(0);
+        mDialog.show();
+
     }
+
 }

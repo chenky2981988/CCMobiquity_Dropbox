@@ -1,12 +1,8 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.asynctask;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.ImageView;
-
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.exception.DropboxIOException;
@@ -14,15 +10,17 @@ import com.dropbox.client2.exception.DropboxParseException;
 import com.dropbox.client2.exception.DropboxPartialFileException;
 import com.dropbox.client2.exception.DropboxServerException;
 import com.dropbox.client2.exception.DropboxUnlinkedException;
-
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.listeners.DownloadPhotoListener;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.R;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 /**
  * Created by Chirag on 3/16/2015.
+ * AsyncTask to download selected picture from dropbox photo folder
  */
 
- public class DownloadPicture extends AsyncTask<Void,Void,Boolean> {
+public class DownloadPicture extends AsyncTask<Void, Void, Boolean> {
 
     private DropboxAPI<?> mApi;
     private Context mContext;
@@ -36,52 +34,50 @@ import java.io.FileOutputStream;
     private FileOutputStream mFos;
     private DropboxAPI.ThumbSize thumbSize;
     DownloadPhotoListener listener;
-    private ImageView mImageView;
 
-    public DownloadPicture(Context context, DropboxAPI<?> api,String dropboxPath,DropboxAPI.Entry photoData,DropboxAPI.ThumbSize thumbSize,ImageView imageView)
-    {
+
+    public DownloadPicture(Context context, DropboxAPI<?> api, String dropboxPath, DropboxAPI.Entry photoData, DropboxAPI.ThumbSize thumbSize) {
         this.mApi = api;
         this.mContext = context;
         this.mPath = dropboxPath;
         this.photoData = photoData;
         this.thumbSize = thumbSize;
         listener = (DownloadPhotoListener) mContext;
-        this.mImageView = imageView;
+
 
     }
+
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        if(mImageView == null) {
-            if (progressDialog == null)
-                progressDialog = ProgressDialog.show(mContext, "", mContext.getResources().getString(R.string.downloading));
-        }
-
+        // Initialize and start Progress Dialog
+        if (progressDialog == null)
+            progressDialog = ProgressDialog.show(mContext, "", mContext.getResources().getString(R.string.downloading));
     }
 
     @Override
     protected Boolean doInBackground(Void... params) {
         try {
 
-        String path = this.photoData.path;
-        mFileLen = this.photoData.bytes;
-        cachePath = mContext.getCacheDir().getAbsolutePath() + "/" + this.photoData.fileName();
+            String path = this.photoData.path;
+            mFileLen = this.photoData.bytes;
+            cachePath = mContext.getCacheDir().getAbsolutePath() + "/" + this.photoData.fileName();
 
-        mFos = new FileOutputStream(cachePath);
+            mFos = new FileOutputStream(cachePath);
 
 
-        // This downloads a smaller, thumbnail version of the file.  The
-        // API to download the actual file is roughly the same.
+            // This downloads a smaller, thumbnail version of the file.  The
+            // API to download the actual file is roughly the same.
 
-         mApi.getThumbnail(path, mFos, this.thumbSize,
+            mApi.getThumbnail(path, mFos, this.thumbSize,
                     DropboxAPI.ThumbFormat.JPEG, null);
 
-       //  mDrawable = Drawable.createFromPath(cachePath);
-         return true;
+            //  mDrawable = Drawable.createFromPath(cachePath);
+            return true;
         } catch (FileNotFoundException e) {
             mErrorMsg = "Couldn't create a local file to store the image";
 
-        }catch (DropboxUnlinkedException e) {
+        } catch (DropboxUnlinkedException e) {
             // The AuthSession wasn't properly authenticated or user unlinked.
         } catch (DropboxPartialFileException e) {
             // We canceled the operation
@@ -114,10 +110,10 @@ import java.io.FileOutputStream;
                 mErrorMsg = e.body.error;
             }
 
-        }catch (DropboxIOException e) {
+        } catch (DropboxIOException e) {
             // Happens all the time, probably want to retry automatically.
             mErrorMsg = "Network error.  Try again.";
-        }catch (DropboxParseException e) {
+        } catch (DropboxParseException e) {
             // Probably due to Dropbox server restarting, should retry
             mErrorMsg = "Dropbox error.  Try again.";
         } catch (DropboxException e) {
@@ -131,19 +127,15 @@ import java.io.FileOutputStream;
     protected void onPostExecute(Boolean result) {
         super.onPostExecute(result);
 
-        if(mImageView != null && result)
-        {
-            mImageView.setImageDrawable(Drawable.createFromPath(cachePath));
-            return;
-        }
-        if(result)
-        {
+        // Call interface method with downloaded image path
+        if (result) {
             listener.setPhoto(cachePath);
-            if(progressDialog != null && progressDialog.isShowing())
-            {
-                progressDialog.dismiss();
-            }
+
         }
+        // Dismiss ProgressDialog
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.dismiss();
+
 
     }
 }

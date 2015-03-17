@@ -1,16 +1,19 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.asynctask;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.exception.DropboxException;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.listeners.PhotoListListener;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.R;
+
 import java.util.ArrayList;
 
 /**
  * Created by Chirag on 3/16/2015.
+ * AsyncTask to Download Photo List from dropBox
  */
 public class DownloadPhotosList extends AsyncTask<Void,Void,ArrayList<DropboxAPI.Entry>>
 {
@@ -18,10 +21,10 @@ public class DownloadPhotosList extends AsyncTask<Void,Void,ArrayList<DropboxAPI
     private Context mContext;
     private ProgressDialog progressDialog;
     private String mPath;
-    private String mErrorMsg;
+    private String mErrorMsg = "";
     private String TAG = "DownloadPhotoList";
     private PhotoListListener listener;
-    DownloadPhotosList(Context context, DropboxAPI<?> api,String dropboxPath)
+    public DownloadPhotosList(Context context, DropboxAPI<?> api,String dropboxPath)
     {
         this.mApi = api;
         this.mContext = context;
@@ -31,6 +34,7 @@ public class DownloadPhotosList extends AsyncTask<Void,Void,ArrayList<DropboxAPI
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
+        // Initialize and start Progress Dialog
         if(progressDialog == null)
             progressDialog = ProgressDialog.show(mContext,"",mContext.getResources().getString(R.string.loading));
     }
@@ -57,6 +61,9 @@ public class DownloadPhotosList extends AsyncTask<Void,Void,ArrayList<DropboxAPI
 
                  }
              }
+            if(photoList.isEmpty())
+                mErrorMsg = "Photo folder is empty";
+
             return photoList;
 
         } catch (DropboxException e) {
@@ -70,8 +77,10 @@ public class DownloadPhotosList extends AsyncTask<Void,Void,ArrayList<DropboxAPI
     @Override
     protected void onPostExecute(ArrayList<DropboxAPI.Entry> photoList) {
         super.onPostExecute(photoList);
+        // Call listener method and pass data
+        listener.setPhotoList(photoList,mErrorMsg);
 
-        listener.setPhotoList(photoList);
+        // Dismiss ProgressDialog
         if(progressDialog != null && progressDialog.isShowing())
         {
             progressDialog.dismiss();

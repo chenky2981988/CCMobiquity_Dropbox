@@ -1,19 +1,20 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dropbox.client2.DropboxAPI;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.R;
 
 import java.util.ArrayList;
 
 /**
  * Created by Chirag on 3/16/2015.
+ * Photo List Adapter to fill list on HomeActivity with Images list got from dropbox
  */
 public class PhotoListAdapter extends BaseAdapter{
 
@@ -21,6 +22,7 @@ public class PhotoListAdapter extends BaseAdapter{
     private ArrayList<DropboxAPI.Entry> photoList;
     private LayoutInflater inflater;
     private String PHOTO_DIR;
+
     public PhotoListAdapter(Context mContext, ArrayList<DropboxAPI.Entry> photoList,String photoPath)
     {
         this.mContext = mContext;
@@ -57,23 +59,15 @@ public class PhotoListAdapter extends BaseAdapter{
             convertView = inflater.inflate(R.layout.listitem_photolist, parent, false);
             holder = new ViewHolder();
             holder.photoTextView = (TextView) convertView.findViewById(R.id.photo_name);
-            holder.photoImageView = (ImageView)  convertView.findViewById(R.id.photo_thumbnail);
             convertView.setTag(holder);
         }else {
             holder = (ViewHolder) convertView.getTag();
         }
-
         holder.photoTextView.setText(photoList.get(position).fileName());
-
-        DownloadPicture downloadPicture = new DownloadPicture(mContext,((HomeActivity)mContext).mApi,this.PHOTO_DIR,photoList.get(position),DropboxAPI.ThumbSize.ICON_64x64,holder.photoImageView);
-        downloadPicture.execute();
-
         return convertView;
     }
 
-    static class ViewHolder
-    {
+    static class ViewHolder{
         TextView photoTextView;
-        ImageView photoImageView;
     }
 }

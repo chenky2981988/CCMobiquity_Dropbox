@@ -1,66 +1,86 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
+import android.view.View;
+import android.widget.Button;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.android.AndroidAuthSession;
 import com.dropbox.client2.android.AuthActivity;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.R;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.application.DropBoxSession;
+import com.mobiquitytest.chirag.ccmobiquity_dropbox.util.Utils;
 
-
-public class MainActivity extends MasterActivity {
+/*
+    This is Application Launcher activity used to create DropBox session before upload or download images
+ */
+public class MainActivity extends ActionBarActivity {
 
     private static final String APP_KEY = "55fdqp32bdt5hvl";
     private static final String APP_SECRET = "2kfi0fd4w66asll";
 
     // You don't need to change these, leave them alone.
-    private static final String ACCOUNT_PREFS_NAME = "prefs";
+    public static final String ACCOUNT_PREFS_NAME = "prefs";
     private static final String ACCESS_KEY_NAME = "ACCESS_KEY";
     private static final String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 
     private static final boolean USE_OAUTH1 = false;
-
-
-    private String TAG = "MainActivity";
+     private String TAG = "MainActivity";
     private boolean mLoggedIn;
+    private DropBoxSession dropBoxSession;
+    private Utils utils;
+    private Button linkButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_login);
-
+        dropBoxSession = ((DropBoxSession) getApplicationContext());
         // We create a new AuthSession so that we can use the Dropbox API.
         AndroidAuthSession session = buildSession();
-        mApi = new DropboxAPI<AndroidAuthSession>(session);
+        dropBoxSession.setmApi(new DropboxAPI<AndroidAuthSession>(session));
+        // Initialize utils class object
+        utils = new Utils(this);
 
         checkAppKeySetup();
+        initUI();
 
-        if(!mLoggedIn) {
-        if (USE_OAUTH1) {
-            mApi.getSession().startAuthentication(MainActivity.this);
-        } else {
-            mApi.getSession().startOAuth2Authentication(MainActivity.this);
-        }
-        }
-        // Display the proper UI state if logged in or not
-      //  setLoggedIn(mApi.getSession().isLinked());
+    }
+    /*
+        Initialize UI components
+    */
+    private void initUI() {
+        linkButton = (Button) findViewById(R.id.link_button);
+        linkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (utils.isNetworkAvailable()) {
+                    if (!mLoggedIn) {
+                        if (USE_OAUTH1) {
+                            dropBoxSession.getmApi().getSession().startAuthentication(MainActivity.this);
+                        } else {
+                            dropBoxSession.getmApi().getSession().startOAuth2Authentication(MainActivity.this);
+                        }
+                    }
+                }else{
+                    utils.showToast("Internet is not available");
+                }
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-            AndroidAuthSession session = mApi.getSession();
+            AndroidAuthSession session = dropBoxSession.getmApi().getSession();
 
             // The next part must be inserted in the onResume() method of the
             // activity from which session.startAuthentication() was called, so
@@ -74,13 +94,13 @@ public class MainActivity extends MasterActivity {
                     storeAuth(session);
                     setLoggedIn(true);
                 } catch (IllegalStateException e) {
-                    showToast("Couldn't authenticate with Dropbox:" + e.getLocalizedMessage());
+                    utils.showToast("Couldn't authenticate with Dropbox:" + e.getLocalizedMessage());
                     Log.i(TAG, "Error authenticating", e);
                 }
             }
 
     }
-
+    // Create amd build Dropbox session
     private AndroidAuthSession buildSession() {
         AppKeyPair appKeyPair = new AppKeyPair(APP_KEY, APP_SECRET);
 
@@ -89,11 +109,15 @@ public class MainActivity extends MasterActivity {
         return session;
     }
 
+    /*
+        OAuth Process
+        Check Session token key , if not present then download redirect to dropbox login screen
+     */
     private void checkAppKeySetup() {
         // Check to make sure that we have a valid app key
         if (APP_KEY.startsWith("CHANGE") ||
                 APP_SECRET.startsWith("CHANGE")) {
-            showToast("You must apply for an app key and secret from developers.dropbox.com, and add them to the DBRoulette ap before trying it.");
+            utils.showToast("You must apply for an app key and secret from developers.dropbox.com, and add them to the DBRoulette ap before trying it.");
             finish();
             return;
         }
@@ -105,7 +129,7 @@ public class MainActivity extends MasterActivity {
         testIntent.setData(Uri.parse(uri));
         PackageManager pm = getPackageManager();
         if (0 == pm.queryIntentActivities(testIntent, 0).size()) {
-            showToast("URL scheme in your app's " +
+            utils.showToast("URL scheme in your app's " +
                     "manifest is not set up correctly. You should have a " +
                     "com.dropbox.client2.android.AuthActivity with the " +
                     "scheme: " + scheme);
@@ -162,12 +186,7 @@ public class MainActivity extends MasterActivity {
         }
     }
 
-    private void clearKeys() {
-        SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
-        SharedPreferences.Editor edit = prefs.edit();
-        edit.clear();
-        edit.commit();
-    }
+
 
 
 
@@ -180,7 +199,7 @@ public class MainActivity extends MasterActivity {
         if (loggedIn) {
 //            mSubmit.setText("Unlink from Dropbox");
 //            mDisplay.setVisibility(View.VISIBLE);
-            showToast("Successfully logged in");
+            utils.showToast("Successfully logged in");
             Intent homeIntent = new Intent(this,HomeActivity.class);
             startActivity(homeIntent);
             finish();
@@ -189,19 +208,11 @@ public class MainActivity extends MasterActivity {
 //            mSubmit.setText("Link with Dropbox");
 //            mDisplay.setVisibility(View.GONE);
 //            mImage.setImageDrawable(null);
-            showToast("Unable to log in");
+            utils.showToast("Unable to log in");
         }
     }
 
-    private void logOut() {
-        // Remove credentials from the session
-        mApi.getSession().unlink();
 
-        // Clear our stored keys
-        clearKeys();
-        // Change UI state to display logged out version
-        setLoggedIn(false);
-    }
 
 
 

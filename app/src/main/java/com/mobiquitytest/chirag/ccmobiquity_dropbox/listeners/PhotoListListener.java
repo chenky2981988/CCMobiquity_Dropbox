@@ -1,4 +1,4 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.listeners;
 
 import com.dropbox.client2.DropboxAPI;
 
@@ -9,6 +9,6 @@ import java.util.ArrayList;
  */
 public interface PhotoListListener {
 
-    public void setPhotoList(ArrayList<DropboxAPI.Entry> photoList);
+    public void setPhotoList(ArrayList<DropboxAPI.Entry> photoList,String errorMsg);
     public void updatePhotoList(boolean uploadResult);
 }

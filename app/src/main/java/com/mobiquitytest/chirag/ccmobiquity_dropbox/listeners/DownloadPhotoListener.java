@@ -1,6 +1,4 @@
-package com.mobiquitytest.chirag.ccmobiquity_dropbox;
-
-import android.graphics.drawable.Drawable;
+package com.mobiquitytest.chirag.ccmobiquity_dropbox.listeners;
 
 /**
  * Created by Chirag on 3/17/2015.
